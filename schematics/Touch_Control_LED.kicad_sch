@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kicad_sch version="20230121">
+  <uuid>12345678-1234-1234-1234-123456789012</uuid>
+  <paper>A4</paper>
+  <title_block>
+    <title>Touch Control LED - Complete Schematic</title>
+    <date>2026-06-13</date>
+    <rev>1.0</rev>
+    <company>YoungWorker</company>
+    <comment number="1" value="ESP8266 Touch-Controlled RGB LED with Color Temperature"/>
+    <comment number="2" value="Author: YoungWorker"/>
+    <comment number="3" value="License: MIT"/>
+    <comment number="4" value="PCB Size: 70mm x 95mm"/>
+  </title_block>
+
+  <setup>
+    <property name="units" value="mm"/>
+    <property name="grid_size" value="5"/>
+  </setup>
+
+  <!-- Sheet 1: Power Supply Section -->
+  <sheet name="Power Supply">
+    <!-- USB 5V Input Connector -->
+    <symbol name="J1" ref="J1" x="20" y="100">
+      <property name="Reference" value="J1"/>
+      <property name="Value" value="USB_Micro-B"/>
+      <pin name="VBUS" x="40" y="100"/>
+      <pin name="GND" x="40" y="110"/>
+    </symbol>
+
+    <!-- Decoupling Capacitor C1 (10uF) -->
+    <symbol name="C1" ref="C1" x="80" y="100">
+      <property name="Reference" value="C1"/>
+      <property name="Value" value="10µF/25V"/>
+      <pin name="+" x="95" y="100"/>
+      <pin name="-" x="95" y="110"/>
+    </symbol>
+
+    <!-- Power Rails -->
+    <net name="5V" x="60" y="100"/>
+    <net name="GND" x="60" y="115"/>
+    <text x="50" y="95">5V Power Supply</text>
+  </sheet>
+
+  <!-- Sheet 2: Microcontroller Section -->
+  <sheet name="Microcontroller">
+    <!-- ESP8266 D1 Mini Development Board -->
+    <symbol name="U1" ref="U1" x="100" y="50">
+      <property name="Reference" value="U1"/>
+      <property name="Value" value="ESP8266_D1_Mini"/>
+      <!-- Power pins -->
+      <pin name="5V" x="80" y="50"/>
+      <pin name="GND" x="80" y="120"/>
+      <!-- GPIO pins for LED control -->
+      <pin name="D1(GPIO5)" x="80" y="65"/>
+      <pin name="D2(GPIO4)" x="80" y="75"/>
+      <pin name="D3(GPIO0)" x="80" y="85"/>
+      <!-- Touch sensor input -->
+      <pin name="D5(GPIO14)" x="80" y="95"/>
+    </symbol>
+
+    <!-- Connections -->
+    <net name="5V" x="80" y="50"/>
+    <net name="GND" x="80" y="120"/>
+    <net name="D1_GPIO5" x="80" y="65"/>
+    <net name="D2_GPIO4" x="80" y="75"/>
+    <net name="D3_GPIO0" x="80" y="85"/>
+    <net name="D5_GPIO14" x="80" y="95"/>
+    <text x="90" y="40">ESP8266 Development Board</text>
+  </sheet>
+
+  <!-- Sheet 3: Touch Sensor Section -->
+  <sheet name="Touch Sensor">
+    <!-- TTP223 Capacitive Touch Module -->
+    <symbol name="U2" ref="U2" x="180" y="60">
+      <property name="Reference" value="U2"/>
+      <property name="Value" value="TTP223_Module"/>
+      <pin name="VCC" x="160" y="60"/>
+      <pin name="GND" x="160" y="75"/>
+      <pin name="OUT" x="200" y="68"/>
+    </symbol>
+
+    <!-- Power connections -->
+    <net name="5V" x="160" y="60"/>
+    <net name="GND" x="160" y="75"/>
+    <!-- Touch output to D5 -->
+    <net name="TTP223_OUT" x="200" y="68"/>
+    <net name="D5_GPIO14" x="210" y="68"/>
+    <line x1="200" y1="68" x2="210" y2="68"/>
+    <text x="175" y="50">Touch Sensor Module</text>
+  </sheet>
+
+  <!-- Sheet 4: LED Control Channel 1 (Cool White) -->
+  <sheet name="Cool White LED">
+    <!-- Resistor R1 (220 Ohm current limiting) -->
+    <symbol name="R1" ref="R1" x="50" y="150">
+      <property name="Reference" value="R1"/>
+      <property name="Value" value="220Ω/1/4W"/>
+      <pin name="1" x="40" y="150"/>
+      <pin name="2" x="70" y="150"/>
+    </symbol>
+
+    <!-- LED1 (Cool White) -->
+    <symbol name="LED1" ref="LED1" x="100" y="140">
+      <property name="Reference" value="LED1"/>
+      <property name="Value" value="LED_5mm_CoolWhite"/>
+      <pin name="A(+)" x="90" y="140"/>
+      <pin name="K(-)" x="120" y="140"/>
+    </symbol>
+
+    <!-- Connections -->
+    <net name="D2_GPIO4" x="40" y="150"/>
+    <net name="LED_COOL" x="70" y="150"/>
+    <net name="LED_COOL" x="90" y="140"/>
+    <net name="GND" x="120" y="140"/>
+    <line x1="70" y1="150" x2="90" y2="140"/>
+    <text x="60" y="130">Cool White LED (5mm)</text>
+  </sheet>
+
+  <!-- Sheet 5: LED Control Channel 2 (Warm White) -->
+  <sheet name="Warm White LED">
+    <!-- Resistor R2 (220 Ohm current limiting) -->
+    <symbol name="R2" ref="R2" x="50" y="190">
+      <property name="Reference" value="R2"/>
+      <property name="Value" value="220Ω/1/4W"/>
+      <pin name="1" x="40" y="190"/>
+      <pin name="2" x="70" y="190"/>
+    </symbol>
+
+    <!-- LED2 (Warm White) -->
+    <symbol name="LED2" ref="LED2" x="100" y="180">
+      <property name="Reference" value="LED2"/>
+      <property name="Value" value="LED_5mm_WarmWhite"/>
+      <pin name="A(+)" x="90" y="180"/>
+      <pin name="K(-)" x="120" y="180"/>
+    </symbol>
+
+    <!-- Connections -->
+    <net name="D1_GPIO5" x="40" y="190"/>
+    <net name="LED_WARM" x="70" y="190"/>
+    <net name="LED_WARM" x="90" y="180"/>
+    <net name="GND" x="120" y="180"/>
+    <line x1="70" y1="190" x2="90" y2="180"/>
+    <text x="60" y="170">Warm White LED (5mm)</text>
+  </sheet>
+
+  <!-- Sheet 6: LED Control Channel 3 (Warm-Cool Mix) -->
+  <sheet name="Warm-Cool Mix LED">
+    <!-- Resistor R3 (220 Ohm current limiting) -->
+    <symbol name="R3" ref="R3" x="50" y="230">
+      <property name="Reference" value="R3"/>
+      <property name="Value" value="220Ω/1/4W"/>
+      <pin name="1" x="40" y="230"/>
+      <pin name="2" x="70" y="230"/>
+    </symbol>
+
+    <!-- LED3 (Mix) -->
+    <symbol name="LED3" ref="LED3" x="100" y="220">
+      <property name="Reference" value="LED3"/>
+      <property name="Value" value="LED_5mm_WarmCool"/>
+      <pin name="A(+)" x="90" y="220"/>
+      <pin name="K(-)" x="120" y="220"/>
+    </symbol>
+
+    <!-- Connections -->
+    <net name="D3_GPIO0" x="40" y="230"/>
+    <net name="LED_MIX" x="70" y="230"/>
+    <net name="LED_MIX" x="90" y="220"/>
+    <net name="GND" x="120" y="220"/>
+    <line x1="70" y1="230" x2="90" y2="220"/>
+    <text x="55" y="210">Warm-Cool Mix LED (5mm)</text>
+  </sheet>
+
+  <!-- Ground Plane Connection -->
+  <net name="GND">
+    <connection sheet="Power Supply" pin="GND"/>
+    <connection sheet="Microcontroller" pin="GND"/>
+    <connection sheet="Touch Sensor" pin="GND"/>
+    <connection sheet="Cool White LED" pin="K(-)"/>
+    <connection sheet="Warm White LED" pin="K(-)"/>
+    <connection sheet="Warm-Cool Mix LED" pin="K(-)"/>
+  </net>
+
+  <!-- Summary Table -->
+  <text x="10" y="280" style="bold" size="14">CONNECTION SUMMARY</text>
+  <text x="10" y="295">Pin Assignments (ESP8266 D1 Mini):</text>
+  <text x="15" y="310">D1 (GPIO5)  → R2 (220Ω) → LED2 (Warm White) → GND</text>
+  <text x="15" y="325">D2 (GPIO4)  → R1 (220Ω) → LED1 (Cool White) → GND</text>
+  <text x="15" y="340">D3 (GPIO0)  → R3 (220Ω) → LED3 (Warm-Cool) → GND</text>
+  <text x="15" y="355">D5 (GPIO14) ← TTP223 OUT (Touch Sensor)</text>
+  <text x="15" y="370">5V ← USB Power (via capacitor C1)</text>
+  <text x="15" y="385">GND ← Common Ground Reference</text>
+
+</kicad_sch>

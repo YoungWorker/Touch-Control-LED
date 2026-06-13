@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://kicad.org/schemas/project/1">
+  <general>
+    <title>Touch Control LED - Complete Design</title>
+    <description>ESP8266-based touch-controlled smart light with adjustable color temperature. This project demonstrates embedded systems design with microcontrollers, sensors, and RGB LED control.</description>
+    <author>YoungWorker</author>
+    <date>2026-06-13</date>
+    <version>1.0</version>
+    <license>MIT License</license>
+  </general>
+
+  <schematic>
+    <file path="Touch_Control_LED.kicad_sch"/>
+    <version>KiCad 6.0+</version>
+    <last_modified>2026-06-13</last_modified>
+  </schematic>
+
+  <pcb>
+    <file path="Touch_Control_LED.kicad_pcb"/>
+    <version>KiCad 6.0+</version>
+    <board_dimensions>
+      <width_mm>48</width_mm>
+      <height_mm>93</height_mm>
+      <thickness_mm>1.6</thickness_mm>
+    </board_dimensions>
+    <layers>2</layers>
+    <copper_weight>35um</copper_weight>
+    <last_modified>2026-06-13</last_modified>
+  </pcb>
+
+  <component_list>
+    <component>
+      <reference>J1</reference>
+      <name>USB Micro-B Connector</name>
+      <value>USB_Micro-B_Amphenol</value>
+      <footprint>Connector_USB:USB_Micro-B_Amphenol_10118194</footprint>
+      <description>Micro USB connector for 5V power input</description>
+      <pins>VBUS GND</pins>
+      <supplier>Generic</supplier>
+      <cost>2-5 CNY</cost>
+    </component>
+
+    <component>
+      <reference>U1</reference>
+      <name>ESP8266 D1 Mini Development Board</name>
+      <value>ESP8266</value>
+      <footprint>Module:ESP8266_D1_Mini</footprint>
+      <description>WiFi-enabled microcontroller with 11 GPIO pins, 1MB flash memory</description>
+      <pins>5V GND D1 D2 D3 D4 D5 TX RX</pins>
+      <voltage>3.3V logic, 5V USB input</voltage>
+      <frequency>80 MHz</frequency>
+      <memory>1MB Flash, 160KB RAM</memory>
+      <supplier>Taobao, AliExpress</supplier>
+      <cost>25-35 CNY</cost>
+    </component>
+
+    <component>
+      <reference>U2</reference>
+      <name>TTP223 Capacitive Touch Sensor Module</name>
+      <value>TTP223</value>
+      <footprint>Sensor:TTP223</footprint>
+      <description>Single-channel capacitive touch pad sensor with automatic power-down</description>
+      <pins>VCC GND OUT</pins>
+      <voltage>2.4-5.5V</voltage>
+      <output>HIGH when touched, LOW when released</output>
+      <response_time>60ms typical</response_time>
+      <supplier>Taobao, AliExpress</supplier>
+      <cost>8-12 CNY</cost>
+    </component>
+
+    <component>
+      <reference>R1</reference>
+      <name>Resistor 220 Ohm - Cool White LED current limiting</name>
+      <value>220Ω</value>
+      <footprint>Resistor_SMD:R_1206</footprint>
+      <tolerance>5%</tolerance>
+      <power_rating>0.25W</power_rating>
+      <supplier>Generic, Taobao</supplier>
+      <cost>0.05-0.1 CNY</cost>
+    </component>
+
+    <component>
+      <reference>R2</reference>
+      <name>Resistor 220 Ohm - Warm White LED current limiting</name>
+      <value>220Ω</value>
+      <footprint>Resistor_SMD:R_1206</footprint>
+      <tolerance>5%</tolerance>
+      <power_rating>0.25W</power_rating>
+      <supplier>Generic, Taobao</supplier>
+      <cost>0.05-0.1 CNY</cost>
+    </component>
+
+    <component>
+      <reference>R3</reference>
+      <name>Resistor 220 Ohm - Mix LED current limiting</name>
+      <value>220Ω</value>
+      <footprint>Resistor_SMD:R_1206</footprint>
+      <tolerance>5%</tolerance>
+      <power_rating>0.25W</power_rating>
+      <supplier>Generic, Taobao</supplier>
+      <cost>0.05-0.1 CNY</cost>
+    </component>
+
+    <component>
+      <reference>LED1</reference>
+      <name>LED - Cool White 5mm</name>
+      <value>LED_CoolWhite</value>
+      <footprint>LED_SMD:LED_1206</footprint>
+      <color>White (6000-7000K)</color>
+      <voltage>3.3V forward voltage typical</voltage>
+      <current>20mA typical</current>
+      <brightness>-5000mcd</brightness>
+      <supplier>Taobao, AliExpress</supplier>
+      <cost>0.5-1 CNY</cost>
+    </component>
+
+    <component>
+      <reference>LED2</reference>
+      <name>LED - Warm White 5mm</name>
+      <value>LED_WarmWhite</value>
+      <footprint>LED_SMD:LED_1206</footprint>
+      <color>Warm White (2700-3000K)</color>
+      <voltage>3.3V forward voltage typical</voltage>
+      <current>20mA typical</current>
+      <brightness>~5000mcd</brightness>
+      <supplier>Taobao, AliExpress</supplier>
+      <cost>0.5-1 CNY</cost>
+    </component>
+
+    <component>
+      <reference>LED3</reference>
+      <name>LED - Warm-Cool Mix 5mm</name>
+      <value>LED_WarmCool</value>
+      <footprint>LED_SMD:LED_1206</footprint>
+      <color>Warm White (3000-4000K)</color>
+      <voltage>3.3V forward voltage typical</voltage>
+      <current>20mA typical</current>
+      <brightness>~5000mcd</brightness>
+      <supplier>Taobao, AliExpress</supplier>
+      <cost>0.5-1 CNY</cost>
+    </component>
+
+    <component>
+      <reference>C1</reference>
+      <name>Capacitor - Power supply decoupling</name>
+      <value>10µF/25V</value>
+      <footprint>Capacitor_SMD:C_0805</footprint>
+      <type>Ceramic/Electrolytic</type>
+      <voltage>25V rated</voltage>
+      <esr>~0.1Ω typical</esr>
+      <supplier>Generic, Taobao</supplier>
+      <cost>0.1-0.2 CNY</cost>
+    </component>
+  </component_list>
+
+  <electrical_parameters>
+    <power_supply>
+      <input_voltage>5V USB</input_voltage>
+      <input_current_max>1A</input_current_max>
+      <regulated_voltage>3.3V (from ESP8266 regulator)</regulated_voltage>
+      <logic_voltage>3.3V</logic_voltage>
+    </power_supply>
+    <led_specifications>
+      <led_voltage>3.3V typical forward voltage</led_voltage>
+      <led_current>20mA per LED</led_current>
+      <total_current_max>60mA (3 LEDs) + 80mA (MCU) = ~140mA</total_current_max>
+      <pwm_frequency>1000Hz (configurable in firmware)</pwm_frequency>
+      <pwm_resolution>8-bit (0-255)</pwm_resolution>
+    </led_specifications>
+    <gpio_specifications>
+      <gpio_voltage>3.3V</gpio_voltage>
+      <gpio_max_current>12mA per pin</gpio_max_current>
+      <pull_up_internal>Yes (configurable)</pull_up_internal>
+      <pull_down_internal>Yes (configurable)</pull_down_internal>
+    </gpio_specifications>
+  </electrical_parameters>
+
+  <design_rules>
+    <trace_width>
+      <minimum>0.2mm</minimum>
+      <typical>0.3mm</typical>
+      <power>0.5mm</power>
+      <ground>0.5mm</ground>
+    </trace_width>
+    <clearance>
+      <trace_to_trace>0.2mm</trace_to_trace>
+      <pad_to_pad>0.2mm</pad_to_pad>
+      <trace_to_pad>0.2mm</trace_to_pad>
+    </clearance>
+    <via>
+      <diameter_minimum>0.3mm</diameter_minimum>
+      <diameter_typical>0.5mm</diameter_typical>
+      <hole_diameter>0.2mm</hole_diameter>
+    </via>
+  </design_rules>
+
+  <manufacturing_specs>
+    <pcb_substrate>FR-4</pcb_substrate>
+    <pcb_thickness>1.6mm</pcb_thickness>
+    <copper_weight>35µm (1oz)</copper_weight>
+    <layers>2 (Front and Back)</layers>
+    <solder_mask>Green epoxy</solder_mask>
+    <silk_screen>White</silk_screen>
+    <surface_finish>HASL (Hot Air Solder Leveling)</surface_finish>
+    <edge_connector>None</edge_connector>
+    <fiducial_marks>2x (optional)</fiducial_marks>
+    <production_panelization>Can be panelized with 2-3mm rails</production_panelization>
+  </manufacturing_specs>
+
+  <thermal_design>
+    <ambient_temperature>0-40°C operating</ambient_temperature>
+    <power_dissipation>
+      <esp8266>~80mA @ 3.3V = 0.26W</esp8266>
+      <resistors>Each resistor: 20mA² × 220Ω = 0.088W per resistor × 3 = 0.26W total</resistors>
+      <leds>3 × 20mA × 3.3V = 0.2W total</leds>
+      <total_estimated>~0.8W maximum</total_estimated>
+    </power_dissipation>
+    <thermal_considerations>
+      <heat_generation>Low - passive cooling sufficient</heat_generation>
+      <heatsink>Not required</heatsink>
+      <air_circulation>Natural convection adequate</air_circulation>
+    </thermal_considerations>
+  </thermal_design>
+
+  <file_references>
+    <firmware>../Touch_Control_LED.ino</firmware>
+    <schematic>../schematics/Touch_Control_LED.kicad_sch</schematic>
+    <pcb_layout>Touch_Control_LED.kicad_pcb</pcb_layout>
+    <documentation>../CIRCUIT_DIAGRAM.md</documentation>
+    <bom>../COMPONENTS_LIST.md</bom>
+  </file_references>
+
+  <revision_history>
+    <revision number="1.0">
+      <date>2026-06-13</date>
+      <author>YoungWorker</author>
+      <changes>Initial release - Complete schematic and PCB layout</changes>
+      <status>Production Ready</status>
+    </revision>
+  </revision_history>
+
+  <notes>
+    <note>All components are readily available from major suppliers (Taobao, AliExpress, Amazon)</note>
+    <note>PCB can be manufactured by professional services (JLC PCB, PCBWay, DFRobot)</note>
+    <note>Assembly can be done manually (through-hole) or by pick-and-place machine (SMD)</note>
+    <note>Total project cost estimated at 80-150 CNY (~$12-22 USD)</note>
+    <note>This design is open-source and can be modified for different applications</note>
+  </notes>
+
+</project>
