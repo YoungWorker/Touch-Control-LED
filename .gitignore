@@ -1,0 +1,30 @@
+# Arduino build output
+build/
+dist/
+*.o
+*.a
+*.so
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+*.bin
+*.elf
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Compiled files
+*.hex
+*.eep

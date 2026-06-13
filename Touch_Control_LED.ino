@@ -1,1 +1,196 @@
-#include <Arduino.h>\n\n// ==================== PIN DEFINITIONS ====================\n#define TOUCH_SENSOR_PIN D5      // GPIO14 - TTP223 output pin\n#define LED_WARM_PIN D1          // GPIO5  - Warm white LED (PWM)\n#define LED_COOL_PIN D2          // GPIO4  - Cool white LED (PWM)\n#define LED_WARM_COOL_PIN D3     // GPIO0  - Warm-cool mix LED (PWM)\n\n// ==================== STATE VARIABLES ====================\nenum ColorMode {\n  MODE_OFF = 0,         // 灯灭\n  MODE_WARM = 1,        // 暖色光\n  MODE_COOL = 2,        // 冷白色光\n  MODE_WARM_COOL = 3    // 暖白色光\n};\n\nColorMode currentMode = MODE_OFF;\nint brightness = 255;  // 0-255 PWM brightness\n\nunsigned long lastTouchTime = 0;\nconst unsigned long DEBOUNCE_TIME = 300;  // 防抖延迟 (ms)\nconst unsigned long TOUCH_TIMEOUT = 2000; // 触摸超时时间 (ms) - 判断是否为新的触摸序列\n\nbool lastTouchState = LOW;\nint touchCount = 0;     // 当前触摸序列的计数\nunsigned long touchSequenceStartTime = 0;  // 触摸序列开始时间\n\n// ==================== SETUP ====================\nvoid setup() {\n  Serial.begin(115200);\n  delay(100);\n  \n  Serial.println(\"\\n\\n========== ESP8266 Touch Control LED v2.0 ==========\");\n  Serial.println(\"控制逻辑：\");\n  Serial.println(\"  第1次触摸 → 白光 (暖白色光模式)\");\n  Serial.println(\"  第2次触摸 → 暖色光\");\n  Serial.println(\"  第3次触摸 → 冷白色光\");\n  Serial.println(\"  第4次触摸 → 关灯\");\n  Serial.println(\"  2秒无触摸则重新计数\");\n  Serial.println(\"=========================================\\n\");\n  \n  // 初始化引脚\n  pinMode(TOUCH_SENSOR_PIN, INPUT);\n  pinMode(LED_WARM_PIN, OUTPUT);\n  pinMode(LED_COOL_PIN, OUTPUT);\n  pinMode(LED_WARM_COOL_PIN, OUTPUT);\n  \n  // 设置PWM频率 (1000Hz)\n  analogWriteFreq(1000);\n  analogWriteRange(255);\n  \n  // 关闭所有LED\n  allLedOff();\n  \n  Serial.println(\"Setup complete. Waiting for touch input...\");\n}\n\n// ==================== MAIN LOOP ====================\nvoid loop() {\n  handleTouchInput();\n  updateLED();\n  delay(10);\n}\n\n// ==================== TOUCH HANDLING ====================\nvoid handleTouchInput() {\n  bool currentTouchState = digitalRead(TOUCH_SENSOR_PIN);\n  unsigned long now = millis();\n  \n  // 检测触摸从LOW到HIGH的边沿（按下）\n  if (currentTouchState == HIGH && lastTouchState == LOW) {\n    // 防抖检查\n    if (now - lastTouchTime < DEBOUNCE_TIME) {\n      lastTouchState = currentTouchState;\n      return;\n    }\n    \n    lastTouchTime = now;\n    \n    // 检查是否需要重置触摸计数\n    if (now - touchSequenceStartTime > TOUCH_TIMEOUT) {\n      // 超时：开始新的触摸序列\n      touchCount = 0;\n      touchSequenceStartTime = now;\n      Serial.println(\"\\n[新序列开始]\");\n    }\n    \n    // 增加触摸计数\n    touchCount++;\n    Serial.printf(\"\\n[触摸 #%d] 检测到触摸\\n\", touchCount);\n    \n    // 根据触摸次数执行动作\n    executeTouchCommand(touchCount);\n  }\n  \n  lastTouchState = currentTouchState;\n}\n\n// ==================== EXECUTE TOUCH COMMAND ====================\nvoid executeTouchCommand(int count) {\n  switch (count) {\n    case 1:\n      // 第1次触摸：打开白光 (暖白色混合)\n      currentMode = MODE_WARM_COOL;\n      brightness = 255;\n      printStatus();\n      Serial.println(\"  →白光打开 (暖白色光)\");\n      break;\n      \n    case 2:\n      // 第2次触摸：切换到暖色光\n      currentMode = MODE_WARM;\n      brightness = 255;\n      printStatus();\n      Serial.println(\"  →切换到暖色光\");\n      break;\n      \n    case 3:\n      // 第3次触摸：切换到冷白色光\n      currentMode = MODE_COOL;\n      brightness = 255;\n      printStatus();\n      Serial.println(\"  →切换到冷白色光\");\n      break;\n      \n    case 4:\n      // 第4次触摸：关灯\n      currentMode = MODE_OFF;\n      brightness = 0;\n      printStatus();\n      Serial.println(\"  →灯关闭\");\n      touchCount = 0;  // 重置计数，准备下一个周期\n      break;\n      \n    default:\n      // 不应该到达这里\n      break;\n  }\n}\n\n// ==================== LED CONTROL ====================\nvoid updateLED() {\n  switch (currentMode) {\n    case MODE_OFF:\n      // 灯灭：所有LED关闭\n      analogWrite(LED_WARM_PIN, 0);\n      analogWrite(LED_COOL_PIN, 0);\n      analogWrite(LED_WARM_COOL_PIN, 0);\n      break;\n      \n    case MODE_WARM:\n      // 暖色光：只开暖色LED\n      analogWrite(LED_WARM_PIN, brightness);\n      analogWrite(LED_COOL_PIN, 0);\n      analogWrite(LED_WARM_COOL_PIN, 0);\n      break;\n      \n    case MODE_COOL:\n      // 冷白色光：只开冷白LED\n      analogWrite(LED_COOL_PIN, brightness);\n      analogWrite(LED_WARM_PIN, 0);\n      analogWrite(LED_WARM_COOL_PIN, 0);\n      break;\n      \n    case MODE_WARM_COOL:\n      // 暖白色光 (白光)：混合暖+冷\n      // 暖色与冷白各占50%，混合LED作为主输出\n      analogWrite(LED_WARM_COOL_PIN, brightness);\n      analogWrite(LED_WARM_PIN, brightness / 2);\n      analogWrite(LED_COOL_PIN, brightness / 2);\n      break;\n  }\n}\n\nvoid allLedOff() {\n  analogWrite(LED_WARM_PIN, 0);\n  analogWrite(LED_COOL_PIN, 0);\n  analogWrite(LED_WARM_COOL_PIN, 0);\n}\n\n// ==================== DEBUG FUNCTIONS ====================\nvoid printStatus() {\n  const char* modes[] = {\"灯灭\", \"暖色光\", \"冷白色光\", \"暖白色光(白)\"};\n  int percent = map(brightness, 0, 255, 0, 100);\n  Serial.printf(\"\\n[状态] 模式: %s | 亮度: %d%%\\n\", modes[currentMode], percent);\n}\n\n// ==================== 时间显示辅助函数 ====================\nvoid printTime() {\n  unsigned long now = millis();\n  unsigned long timeSinceLastTouch = now - lastTouchTime;\n  unsigned long timeSinceSequenceStart = now - touchSequenceStartTime;\n  \n  Serial.printf(\"[时间] 距离上次触摸: %ldms | 序列时长: %ldms | 触摸计数: %d\\n\",\n                timeSinceLastTouch, timeSinceSequenceStart, touchCount);\n}\n"
+#include <Arduino.h>
+
+// ==================== PIN DEFINITIONS ====================
+#define TOUCH_SENSOR_PIN D5      // GPIO14 - TTP223 output pin
+#define LED_WARM_PIN D1          // GPIO5  - Warm white LED (PWM)
+#define LED_COOL_PIN D2          // GPIO4  - Cool white LED (PWM)
+#define LED_WARM_COOL_PIN D3     // GPIO0  - Warm-cool mix LED (PWM)
+
+// ==================== STATE VARIABLES ====================
+enum ColorMode {
+  MODE_OFF = 0,         // 灯灭
+  MODE_WARM = 1,        // 暖色光
+  MODE_COOL = 2,        // 冷白色光
+  MODE_WARM_COOL = 3    // 暖白色光
+};
+
+ColorMode currentMode = MODE_OFF;
+int brightness = 255;  // 0-255 PWM brightness
+
+unsigned long lastTouchTime = 0;
+const unsigned long DEBOUNCE_TIME = 300;  // 防抖延迟 (ms)
+const unsigned long TOUCH_TIMEOUT = 2000; // 触摸超时时间 (ms) - 判断是否为新的触摸序列
+
+bool lastTouchState = LOW;
+int touchCount = 0;     // 当前触摸序列的计数
+unsigned long touchSequenceStartTime = 0;  // 触摸序列开始时间
+
+// ==================== SETUP ====================
+void setup() {
+  Serial.begin(115200);
+  delay(100);
+  
+  Serial.println("\n\n========== ESP8266 Touch Control LED v2.0 ==========");
+  Serial.println("控制逻辑：");
+  Serial.println("  第1次触摸 → 白光 (暖白色光模式)");
+  Serial.println("  第2次触摸 → 暖色光");
+  Serial.println("  第3次触摸 → 冷白色光");
+  Serial.println("  第4次触摸 → 关灯");
+  Serial.println("  2秒无触摸则重新计数");
+  Serial.println("=========================================\n");
+  
+  // 初始化引脚
+  pinMode(TOUCH_SENSOR_PIN, INPUT);
+  pinMode(LED_WARM_PIN, OUTPUT);
+  pinMode(LED_COOL_PIN, OUTPUT);
+  pinMode(LED_WARM_COOL_PIN, OUTPUT);
+  
+  // 设置PWM频率 (1000Hz)
+  analogWriteFreq(1000);
+  analogWriteRange(255);
+  
+  // 关闭所有LED
+  allLedOff();
+  
+  Serial.println("Setup complete. Waiting for touch input...");
+}
+
+// ==================== MAIN LOOP ====================
+void loop() {
+  handleTouchInput();
+  updateLED();
+  delay(10);
+}
+
+// ==================== TOUCH HANDLING ====================
+void handleTouchInput() {
+  bool currentTouchState = digitalRead(TOUCH_SENSOR_PIN);
+  unsigned long now = millis();
+  
+  // 检测触摸从LOW到HIGH的边沿（按下）
+  if (currentTouchState == HIGH && lastTouchState == LOW) {
+    // 防抖检查
+    if (now - lastTouchTime < DEBOUNCE_TIME) {
+      lastTouchState = currentTouchState;
+      return;
+    }
+    
+    lastTouchTime = now;
+    
+    // 检查是否需要重置触摸计数
+    if (now - touchSequenceStartTime > TOUCH_TIMEOUT) {
+      // 超时：开始新的触摸序列
+      touchCount = 0;
+      touchSequenceStartTime = now;
+      Serial.println("\n[新序列开始]");
+    }
+    
+    // 增加触摸计数
+    touchCount++;
+    Serial.printf("\n[触摸 #%d] 检测到触摸\n", touchCount);
+    
+    // 根据触摸次数执行动作
+    executeTouchCommand(touchCount);
+  }
+  
+  lastTouchState = currentTouchState;
+}
+
+// ==================== EXECUTE TOUCH COMMAND ====================
+void executeTouchCommand(int count) {
+  switch (count) {
+    case 1:
+      // 第1次触摸：打开白光 (暖白色混合)
+      currentMode = MODE_WARM_COOL;
+      brightness = 255;
+      printStatus();
+      Serial.println("  →白光打开 (暖白色光)");
+      break;
+      
+    case 2:
+      // 第2次触摸：切换到暖色光
+      currentMode = MODE_WARM;
+      brightness = 255;
+      printStatus();
+      Serial.println("  →切换到暖色光");
+      break;
+      
+    case 3:
+      // 第3次触摸：切换到冷白色光
+      currentMode = MODE_COOL;
+      brightness = 255;
+      printStatus();
+      Serial.println("  →切换到冷白色光");
+      break;
+      
+    case 4:
+      // 第4次触摸：关灯
+      currentMode = MODE_OFF;
+      brightness = 0;
+      printStatus();
+      Serial.println("  →灯关闭");
+      touchCount = 0;  // 重置计数，准备下一个周期
+      break;
+      
+    default:
+      // 不应该到达这里
+      break;
+  }
+}
+
+// ==================== LED CONTROL ====================
+void updateLED() {
+  switch (currentMode) {
+    case MODE_OFF:
+      // 灯灭：所有LED关闭
+      analogWrite(LED_WARM_PIN, 0);
+      analogWrite(LED_COOL_PIN, 0);
+      analogWrite(LED_WARM_COOL_PIN, 0);
+      break;
+      
+    case MODE_WARM:
+      // 暖色光：只开暖色LED
+      analogWrite(LED_WARM_PIN, brightness);
+      analogWrite(LED_COOL_PIN, 0);
+      analogWrite(LED_WARM_COOL_PIN, 0);
+      break;
+      
+    case MODE_COOL:
+      // 冷白色光：只开冷白LED
+      analogWrite(LED_COOL_PIN, brightness);
+      analogWrite(LED_WARM_PIN, 0);
+      analogWrite(LED_WARM_COOL_PIN, 0);
+      break;
+      
+    case MODE_WARM_COOL:
+      // 暖白色光 (白光)：混合暖+冷
+      // 暖色与冷白各占50%，混合LED作为主输出
+      analogWrite(LED_WARM_COOL_PIN, brightness);
+      analogWrite(LED_WARM_PIN, brightness / 2);
+      analogWrite(LED_COOL_PIN, brightness / 2);
+      break;
+  }
+}
+
+void allLedOff() {
+  analogWrite(LED_WARM_PIN, 0);
+  analogWrite(LED_COOL_PIN, 0);
+  analogWrite(LED_WARM_COOL_PIN, 0);
+}
+
+// ==================== DEBUG FUNCTIONS ====================
+void printStatus() {
+  const char* modes[] = {"灯灭", "暖色光", "冷白色光", "暖白色光(白)"};
+  int percent = map(brightness, 0, 255, 0, 100);
+  Serial.printf("\n[状态] 模式: %s | 亮度: %d%%\n", modes[currentMode], percent);
+}
+
+// ==================== 时间显示辅助函数 ====================
+void printTime() {
+  unsigned long now = millis();
+  unsigned long timeSinceLastTouch = now - lastTouchTime;
+  unsigned long timeSinceSequenceStart = now - touchSequenceStartTime;
+  
+  Serial.printf("[时间] 距离上次触摸: %ldms | 序列时长: %ldms | 触摸计数: %d\n",
+                timeSinceLastTouch, timeSinceSequenceStart, touchCount);
+}
